@@ -29,7 +29,8 @@ var dist = grid(0) // dist travelled so far
  * +    17  47  82
  * =    new dist
  */
-for (i <- 1 until grid.length)
-  dist = (dist.head +: dist, dist :+ dist.last, grid(i)).zipped.map(math.max(_, _) + _)
+grid.drop(1).foreach{g => 
+  dist = (dist.head +: dist, dist :+ dist.last, g).zipped.map(math.max(_, _) + _)
+}
 
 println(dist.max)
