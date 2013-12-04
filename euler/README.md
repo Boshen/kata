@@ -6,3 +6,4 @@ Problems that I have no idea how to solve so far
 ------------------------------------------------
 * 26
 * 40
+* 47
