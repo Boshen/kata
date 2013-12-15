@@ -5,16 +5,14 @@ import akka.actor.{ Actor, ActorSystem, Props }
 object Conway {
 
   case class Cell(x: Int, y: Int)
+  case class View(minx: Int, miny: Int, maxx: Int, maxy: Int)
 
   object Grid {
     def next(grid: Grid): Grid =
-      Grid(grid.neighbours.filter(grid.shouldLive(_)).toSet)
+      Grid(grid.neighbours.iterator.filter(grid.shouldLive(_)).toSet, grid.view)
   }
 
-  case class Grid(private val cells: Set[Cell]) extends Iterable[Cell] {
-
-    def hasCells: Boolean =
-      cells.isEmpty
+  case class Grid(private val cells: Set[Cell], view: Option[View] = None) {
 
     def isAlive(cell: Cell): Boolean =
       cells contains cell
@@ -34,7 +32,7 @@ object Conway {
         List(i - 1, i, i + 1)
 
       def block2D(p: Cell) =
-        for (x <- block1D(p.x); y <- block1D(p.y)) yield Cell(x, y)
+        for (x ← block1D(p.x); y ← block1D(p.y)) yield Cell(x, y)
 
       Grid((cells flatMap block2D).toSet)
     }
@@ -42,9 +40,9 @@ object Conway {
     def shouldLive(cell: Cell): Boolean = {
       (isAlive(cell), neighboursCount(cell)) match {
         case (true, 2 | 3) ⇒ true
-        case (true, _) ⇒ false
-        case (false, 3) ⇒ true
-        case (false, _) ⇒ false
+        case (true, _)     ⇒ false
+        case (false, 3)    ⇒ true
+        case (false, _)    ⇒ false
       }
     }
 
@@ -52,15 +50,15 @@ object Conway {
       if (cells.isEmpty)
         ""
       else {
-        val minx = cells.minBy(_.x).x
-        val maxx = cells.maxBy(_.x).x
-        val miny = cells.minBy(_.y).y
-        val maxy = cells.maxBy(_.y).y
+        val minx = if (view.isEmpty) cells.minBy(_.x).x else view.get.minx
+        val maxx = if (view.isEmpty) cells.maxBy(_.x).x else view.get.maxx
+        val miny = if (view.isEmpty) cells.minBy(_.y).y else view.get.miny
+        val maxy = if (view.isEmpty) cells.maxBy(_.y).y else view.get.maxy
 
         val sb = StringBuilder.newBuilder
-        for (x <- minx to maxx) {
+        for (x ← minx to maxx) {
           sb.append("\n")
-          for (y <- miny to maxy)
+          for (y ← miny to maxy)
             sb.append(if (this isAlive Cell(x, y)) "o" else " ")
         }
         sb.toString
@@ -80,17 +78,18 @@ object Conway {
         } else {
           "clear".!
           println(newGrid)
-          Thread.sleep(500)
+          Thread.sleep(200)
           self ! Run(newGrid)
         }
     }
   }
   def main(args: Array[String]) {
-    val system = ActorSystem("Conway's game of life")
+    val system = ActorSystem("Conway")
     val simulator = system.actorOf(Props(classOf[Simulator]), "Simulator")
     val x = Seq.fill(200)(nextInt(30))
     val y = Seq.fill(200)(nextInt(30))
-    var grid = Grid((x zip y).map { case (a, b) ⇒ Cell(a, b) }.toSet)
+    val view = Some(View(0,0,10,10))
+    val grid = Grid((x zip y).map { case (a, b) ⇒ Cell(a, b) }.toSet, None)
     simulator ! Run(grid)
     readLine()
     system.shutdown()

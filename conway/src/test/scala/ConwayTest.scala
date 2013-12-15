@@ -66,11 +66,18 @@ class ConwayTest extends FunSpec {
       grid.toString should be("\no \n o")
       Grid(Set()).toString should be("")
     }
+
+    it("sets the view") {
+      val grid = Grid(Set(Cell(0, 0), Cell(1, 1)), Some(View(0,0,0,0)))
+      grid.toString should be("\no")
+    }
   }
 
   describe("Simulation") {
     it("returns a new grid after an iteration") {
       Grid.next(Grid(Set())) shouldBe a[Grid]
+      val view = Some(View(0,0,0,0))
+      Grid.next(Grid(Set(), view)).view should be (view)
     }
 
     it("goes to the next iteration") {
