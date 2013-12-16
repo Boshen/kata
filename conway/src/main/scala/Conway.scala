@@ -40,9 +40,9 @@ object Conway {
     def shouldLive(cell: Cell): Boolean = {
       (isAlive(cell), neighboursCount(cell)) match {
         case (true, 2 | 3) ⇒ true
-        case (true, _)     ⇒ false
-        case (false, 3)    ⇒ true
-        case (false, _)    ⇒ false
+        case (true, _) ⇒ false
+        case (false, 3) ⇒ true
+        case (false, _) ⇒ false
       }
     }
 
@@ -83,13 +83,14 @@ object Conway {
         }
     }
   }
+
   def main(args: Array[String]) {
     val system = ActorSystem("Conway")
     val simulator = system.actorOf(Props(classOf[Simulator]), "Simulator")
     val x = Seq.fill(200)(nextInt(30))
     val y = Seq.fill(200)(nextInt(30))
-    val view = Some(View(0,0,10,10))
-    val grid = Grid((x zip y).map { case (a, b) ⇒ Cell(a, b) }.toSet, None)
+    val view = Some(View(0, 0, 10, 10))
+    val grid = Grid((x zip y).map { case (a, b) ⇒ Cell(a, b) }.toSet, view)
     simulator ! Run(grid)
     readLine()
     system.shutdown()
