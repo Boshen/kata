@@ -14,6 +14,9 @@ object Conway {
 
   case class Grid(private val cells: Set[Cell], view: Option[View] = None) {
 
+    def addCell(other: Cell): Grid =
+      Grid(cells + other, view)
+
     def isAlive(cell: Cell): Boolean =
       cells contains cell
 
@@ -96,4 +99,4 @@ object Conway {
     system.shutdown()
   }
 
-}
+b
