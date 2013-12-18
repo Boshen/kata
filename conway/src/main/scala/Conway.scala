@@ -99,4 +99,4 @@ object Conway {
     system.shutdown()
   }
 
-b
+}
